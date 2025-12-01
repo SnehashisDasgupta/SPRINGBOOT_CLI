@@ -1,0 +1,11 @@
+touch .gitignore
+```
+
+Add content:
+```
+node_modules/
+*.log
+.DS_Store
+.env
+dist/
+build/
