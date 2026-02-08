@@ -1,0 +1,94 @@
+# {{projectName}}
+
+{{description}}
+
+## Technology Stack
+
+- Java {{javaVersion}}
+- Spring Boot {{springBootVersion}}
+- {{#if (eq buildTool 'maven')}}Maven{{else}}Gradle{{/if}}
+{{#if (ne database 'none')}}
+- Database: {{database}}
+{{/if}}
+
+## Getting Started
+
+### Prerequisites
+
+- Java {{javaVersion}} or higher
+- {{#if (eq buildTool 'maven')}}Maven{{else}}Gradle{{/if}}
+{{#if (eq database 'postgresql')}}
+- PostgreSQL installed and running
+{{/if}}
+{{#if (eq database 'mysql')}}
+- MySQL installed and running
+{{/if}}
+{{#if (eq database 'mongodb')}}
+- MongoDB installed and running
+{{/if}}
+
+{{{databaseInstructions}}}
+
+### Running the Application
+
+{{#if (eq buildTool 'maven')}}
+```bash
+./mvnw spring-boot:run
+```
+{{else}}
+```bash
+./gradlew bootRun
+```
+{{/if}}
+
+The application will start at http://localhost:8080
+
+### Building the Application
+
+{{#if (eq buildTool 'maven')}}
+```bash
+./mvnw clean package
+```
+{{else}}
+```bash
+./gradlew build
+```
+{{/if}}
+
+## Project Structure
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── {{packageName}}/
+│   │       ├── controller/
+│   │       ├── service/
+│   │       ├── repository/
+│   │       ├── model/
+│   │       └── config/
+│   └── resources/
+│       ├── {{#if (eq configurationType 'yaml')}}application.yml{{else}}application.properties{{/if}}
+│       ├── static/
+│       └── templates/
+└── test/
+    └── java/
+        └── {{packageName}}/
+```
+
+## Dependencies
+
+{{#each dependencies}}
+- {{this}}
+{{/each}}
+
+## API Endpoints
+
+(Add your API endpoints documentation here)
+
+## Contributing
+
+(Add contribution guidelines here)
+
+## License
+
+This project is licensed under the MIT License.

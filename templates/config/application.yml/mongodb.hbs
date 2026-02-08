@@ -1,0 +1,18 @@
+server:
+  port: {{port}}
+
+spring:
+  application:
+    name: {{artifact}}
+  
+  data:
+    mongodb:
+      # TODO: Update these values with your MongoDB details
+      uri: {{database.uri}}
+      database: {{database.database}}
+
+logging:
+  level:
+    org.springframework: INFO
+    org.springframework.data.mongodb: DEBUG
+    {{packageName}}: DEBUG

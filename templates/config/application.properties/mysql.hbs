@@ -1,0 +1,22 @@
+# Server Configuration
+server.port={{port}}
+
+# Application Name
+spring.application.name={{artifact}}
+
+# MySQL Database Configuration
+# TODO: Update these values with your database details
+spring.datasource.url={{database.url}}
+spring.datasource.username={{database.username}}
+spring.datasource.password={{database.password}}
+spring.datasource.driver-class-name={{database.driverClassName}}
+
+# JPA Configuration
+spring.jpa.database-platform={{database.dialect}}
+spring.jpa.hibernate.ddl-auto={{database.ddlAuto}}
+spring.jpa.show-sql={{database.showSql}}
+spring.jpa.properties.hibernate.format_sql={{database.formatSql}}
+
+# Logging
+logging.level.org.springframework=INFO
+logging.level.{{packageName}}=DEBUG

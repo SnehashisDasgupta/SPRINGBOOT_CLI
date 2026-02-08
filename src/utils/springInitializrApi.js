@@ -4,71 +4,80 @@ const chalk = require('chalk');
 const SPRING_INITIALIZR_API = 'https://start.spring.io';
 
 /**
- * Fetch Spring Boot metadata from start.spring.io
+ * Fetch Spring Boot metadata
  */
 async function fetchSpringMetadata() {
   try {
-    const response = await axios.get(`${SPRING_INITIALIZR_API}/metadata/client`, {
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
+    const response = await axios.get(
+      `${SPRING_INITIALIZR_API}/metadata/client`,
+      { headers: { Accept: 'application/json' } }
+    );
     return response.data;
   } catch (error) {
-    console.error(chalk.red('Failed to fetch Spring metadata from start.spring.io'));
-    console.error(chalk.yellow('Using fallback static data...'));
+    console.error(chalk.red('Failed to fetch Spring metadata'));
+    console.error(chalk.yellow('Using fallback metadata'));
     return getFallbackMetadata();
   }
 }
 
 /**
- * Get Spring Boot versions from metadata
+ * Get SAFE Spring Boot versions
  */
 async function getSpringBootVersions() {
   const metadata = await fetchSpringMetadata();
-  
-  if (metadata && metadata.bootVersion && metadata.bootVersion.values) {
-    return metadata.bootVersion.values
-      .map(v => v.id)
-      .filter(v => !v.includes('SNAPSHOT') && !v.includes('M')); // Filter out snapshots and milestones
-  }
-  
-  return getFallbackVersions();
+
+  const versions =
+    metadata?.bootVersion?.values?.map(v =>
+      v.id.replace('.RELEASE', '')
+    ) || [];
+
+  return versions.filter(isValidSpringBootVersion);
 }
 
 /**
- * Get available dependencies from metadata
+ * Strict version validation
+ */
+function isValidSpringBootVersion(version) {
+  const clean = version.replace('.RELEASE', '');
+
+  return (
+    (/^(2\.7\.\d+|3\.\d+\.\d+)$/).test(clean) &&
+    !clean.includes('SNAPSHOT') &&
+    !clean.includes('M') &&
+    !clean.includes('RC')
+  );
+}
+
+/**
+ * Get available dependencies
  */
 async function getDependencies() {
   const metadata = await fetchSpringMetadata();
-  
-  if (metadata && metadata.dependencies && metadata.dependencies.values) {
-    const deps = [];
-    
-    metadata.dependencies.values.forEach(group => {
-      group.values.forEach(dep => {
-        deps.push({
-          name: dep.name,
-          value: dep.id,
-          description: dep.description || '',
-          group: group.name
-        });
+
+  if (!metadata?.dependencies?.values) {
+    return getFallbackDependencies();
+  }
+
+  const deps = [];
+  metadata.dependencies.values.forEach(group => {
+    group.values.forEach(dep => {
+      deps.push({
+        name: dep.name,
+        value: dep.id,
+        description: dep.description || '',
+        group: group.name
       });
     });
-    
-    return deps;
-  }
-  
-  return getFallbackDependencies();
+  });
+
+  return deps;
 }
 
 /**
- * Fallback Spring Boot versions if API fails
+ * Fallback versions (KNOWN GOOD)
  */
 function getFallbackVersions() {
   return [
-    '3.4.1',
-    '3.3.6',
     '3.2.11',
     '3.1.18',
     '2.7.18'
@@ -76,7 +85,7 @@ function getFallbackVersions() {
 }
 
 /**
- * Fallback metadata if API fails
+ * Fallback metadata
  */
 function getFallbackMetadata() {
   return {
@@ -90,21 +99,14 @@ function getFallbackMetadata() {
 }
 
 /**
- * Fallback dependencies if API fails
+ * Fallback dependencies
  */
 function getFallbackDependencies() {
   return [
-    { name: 'Spring Web', value: 'web', description: 'Build web applications with Spring MVC', group: 'Web' },
-    { name: 'Spring Data JPA', value: 'data-jpa', description: 'Persist data in SQL stores with Java Persistence API', group: 'SQL' },
-    { name: 'Spring Security', value: 'security', description: 'Secure your application', group: 'Security' },
-    { name: 'Lombok', value: 'lombok', description: 'Java annotation library', group: 'Developer Tools' },
-    { name: 'Validation', value: 'validation', description: 'Bean Validation with Hibernate validator', group: 'I/O' },
-    { name: 'Spring Boot Actuator', value: 'actuator', description: 'Production ready features', group: 'Ops' },
-    { name: 'Spring Boot DevTools', value: 'devtools', description: 'Fast application restarts', group: 'Developer Tools' },
-    { name: 'PostgreSQL Driver', value: 'postgresql', description: 'PostgreSQL JDBC driver', group: 'SQL' },
-    { name: 'MySQL Driver', value: 'mysql', description: 'MySQL JDBC driver', group: 'SQL' },
-    { name: 'H2 Database', value: 'h2', description: 'In-memory database', group: 'SQL' },
-    { name: 'MongoDB', value: 'data-mongodb', description: 'MongoDB NoSQL database', group: 'NoSQL' }
+    { name: 'Spring Web', value: 'web', group: 'Web' },
+    { name: 'Spring Data JPA', value: 'data-jpa', group: 'SQL' },
+    { name: 'Spring Security', value: 'security', group: 'Security' },
+    { name: 'Lombok', value: 'lombok', group: 'Developer Tools' }
   ];
 }
 

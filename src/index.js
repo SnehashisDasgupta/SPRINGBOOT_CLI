@@ -18,7 +18,8 @@ ${chalk.green(' \\\\/  ___)| |_)| | | | | || (_| |  ) ) ) )')}
 ${chalk.green('  \'  |____| .__|_| |_|_| |_\\__, | / / / /')}
 ${chalk.green(' =========|_|==============|___/=/_/_/_/')}
 
-${chalk.bold.cyan(' :: SpringBoot CLI ::')}               ${chalk.dim(`(v${packageJson.version})`)}
+${chalk.bold.cyan(' :: SpringBoot CLI ::')}               
+${chalk.dim(`(v${packageJson.version})`)}
   `;
   console.log(banner);
 }

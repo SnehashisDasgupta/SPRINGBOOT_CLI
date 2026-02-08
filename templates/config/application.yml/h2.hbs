@@ -1,0 +1,28 @@
+server:
+  port: {{port}}
+
+spring:
+  application:
+    name: {{artifact}}
+  
+  datasource:
+    url: {{database.url}}
+    driver-class-name: {{database.driverClassName}}
+    username: {{database.username}}
+    password: {{database.password}}
+  
+  h2:
+    console:
+      enabled: {{database.consoleEnabled}}
+      path: {{database.consolePath}}
+  
+  jpa:
+    database-platform: {{database.dialect}}
+    hibernate:
+      ddl-auto: {{database.ddlAuto}}
+    show-sql: {{database.showSql}}
+
+logging:
+  level:
+    org.springframework: INFO
+    {{packageName}}: DEBUG

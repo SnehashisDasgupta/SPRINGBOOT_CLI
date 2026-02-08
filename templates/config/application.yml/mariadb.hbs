@@ -1,0 +1,79 @@
+server:
+  port: {{port}}
+
+spring:
+  application:
+    name: {{artifact}}
+  
+  datasource:
+    # TODO: Update these values with your database details
+    url: {{database.url}}
+    username: {{database.username}}
+    password: {{database.password}}
+    driver-class-name: {{database.driverClassName}}
+  
+  jpa:
+    database-platform: {{database.dialect}}
+    hibernate:
+      ddl-auto: {{database.ddlAuto}}
+    show-sql: {{database.showSql}}
+    properties:
+      hibernate:
+        format_sql: {{database.formatSql}}
+
+logging:
+  level:
+    org.springframework: INFO
+    {{packageName}}: DEBUG
+```
+
+---
+
+### **Other Configuration Templates**
+
+### **File 36: `templates/config/gitignore.hbs`**
+```
+HELP.md
+{{#if (eq buildTool 'maven')}}
+target/
+{{else}}
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+{{/if}}
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+{{#if (eq buildTool 'gradle')}}
+out/
+{{/if}}
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac ###
+.DS_Store
+
+### Logs ###
+*.log

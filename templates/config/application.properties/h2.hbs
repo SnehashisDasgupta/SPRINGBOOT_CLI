@@ -1,0 +1,24 @@
+# Server Configuration
+server.port={{port}}
+
+# Application Name
+spring.application.name={{artifact}}
+
+# H2 Database Configuration (In-Memory)
+spring.datasource.url={{database.url}}
+spring.datasource.driver-class-name={{database.driverClassName}}
+spring.datasource.username={{database.username}}
+spring.datasource.password={{database.password}}
+
+# H2 Console (Access at http://localhost:{{port}}/h2-console)
+spring.h2.console.enabled={{database.consoleEnabled}}
+spring.h2.console.path={{database.consolePath}}
+
+# JPA Configuration
+spring.jpa.database-platform={{database.dialect}}
+spring.jpa.hibernate.ddl-auto={{database.ddlAuto}}
+spring.jpa.show-sql={{database.showSql}}
+
+# Logging
+logging.level.org.springframework=INFO
+logging.level.{{packageName}}=DEBUG
