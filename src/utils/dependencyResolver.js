@@ -3,6 +3,12 @@
  */
 function resolveMavenDependency(dependencyId) {
   const dependencyMap = {
+    // Core Spring Boot (always included)
+    core: {
+      groupId: 'org.springframework.boot',
+      artifactId: 'spring-boot-starter'
+    },
+
     // Web
     web: {
       groupId: 'org.springframework.boot',
@@ -171,6 +177,10 @@ function resolveMavenDependencies(dependencyIds = []) {
       }
     });
 
+  // Always include Spring Boot core starter
+  const coreDep = resolveMavenDependency('core');
+  resolved.set(coreDep.artifactId, coreDep);
+
   // Always include test dependency ONCE
   const testDep = resolveMavenDependency('test');
   resolved.set(testDep.artifactId, testDep);
@@ -220,7 +230,11 @@ function resolveGradleDependencies(dependencyIds = []) {
       }
     });
 
-  // Always include test dependency
+  // Always include core Spring Boot starter for Gradle
+  const coreDep = resolveGradleDependency('core');
+  resolved.set(coreDep.name, coreDep);
+
+  // Always include test dependency for Gradle
   const testDep = resolveGradleDependency('test');
   resolved.set(testDep.name, testDep);
 
