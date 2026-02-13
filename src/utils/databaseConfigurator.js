@@ -1,81 +1,84 @@
 /**
  * Get database configuration for application.properties
  */
-function getDatabaseConfig(database) {
+function getDatabaseConfig(database, dbName) {
+  const commonJpa = {
+    ddlAuto: "update",
+    showSql: true,
+    formatSql: true,
+  };
+
   const configs = {
     postgresql: {
-      url: 'jdbc:postgresql://localhost:5432/YOUR_DATABASE_NAME',
-      username: 'YOUR_USERNAME',
-      password: 'YOUR_PASSWORD',
-      driverClassName: 'org.postgresql.Driver',
-      dialect: 'org.hibernate.dialect.PostgreSQLDialect',
-      ddlAuto: 'update',
-      showSql: true,
-      formatSql: true
+      type: "sql",
+      url: `jdbc:postgresql://localhost:5432/${dbName}`,
+      username: "your_username",
+      password: "your_password",
+      driverClassName: "org.postgresql.Driver",
+      dialect: "org.hibernate.dialect.PostgreSQLDialect",
+      ...commonJpa,
     },
-    
+
     mysql: {
-      url: 'jdbc:mysql://localhost:3306/YOUR_DATABASE_NAME?useSSL=false&serverTimezone=UTC',
-      username: 'YOUR_USERNAME',
-      password: 'YOUR_PASSWORD',
-      driverClassName: 'com.mysql.cj.jdbc.Driver',
-      dialect: 'org.hibernate.dialect.MySQLDialect',
-      ddlAuto: 'update',
-      showSql: true,
-      formatSql: true
+      type: "sql",
+      url: `jdbc:mysql://localhost:3306/${dbName}?useSSL=false&serverTimezone=UTC`,
+      username: "your_username",
+      password: "your_password",
+      driverClassName: "com.mysql.cj.jdbc.Driver",
+      dialect: "org.hibernate.dialect.MySQLDialect",
+      ...commonJpa,
     },
-    
+
+    mariadb: {
+      type: "sql",
+      url: `jdbc:mariadb://localhost:3306/${dbName}`,
+      username: "your_username",
+      password: "your_password",
+      driverClassName: "org.mariadb.jdbc.Driver",
+      dialect: "org.hibernate.dialect.MariaDBDialect",
+      ...commonJpa,
+    },
+
+    oracle: {
+      type: "sql",
+      url: `jdbc:oracle:thin:@localhost:1521:${dbName}`,
+      username: "your_username",
+      password: "your_password",
+      driverClassName: "oracle.jdbc.OracleDriver",
+      dialect: "org.hibernate.dialect.OracleDialect",
+      ...commonJpa,
+    },
+
+    sqlserver: {
+      type: "sql",
+      url: `jdbc:sqlserver://localhost:1433;databaseName=${dbName}`,
+      username: "your_username",
+      password: "your_password",
+      driverClassName: "com.microsoft.sqlserver.jdbc.SQLServerDriver",
+      dialect: "org.hibernate.dialect.SQLServerDialect",
+      ...commonJpa,
+    },
+
     h2: {
-      url: 'jdbc:h2:mem:testdb',
-      username: 'sa',
-      password: '',
-      driverClassName: 'org.h2.Driver',
-      dialect: 'org.hibernate.dialect.H2Dialect',
-      ddlAuto: 'create-drop',
+      type: "sql",
+      url: "jdbc:h2:mem:testdb",
+      username: "sa",
+      password: "",
+      driverClassName: "org.h2.Driver",
+      dialect: "org.hibernate.dialect.H2Dialect",
+      ddlAuto: "create-drop",
       showSql: true,
       consoleEnabled: true,
-      consolePath: '/h2-console'
+      consolePath: "/h2-console",
     },
-    
+
     mongodb: {
-      uri: 'mongodb://localhost:27017/YOUR_DATABASE_NAME',
-      database: 'YOUR_DATABASE_NAME'
+      type: "nosql",
+      uri: `mongodb://localhost:27017/${dbName}`,
+      database: dbName,
     },
-    
-    oracle: {
-      url: 'jdbc:oracle:thin:@localhost:1521:YOUR_DATABASE_NAME',
-      username: 'YOUR_USERNAME',
-      password: 'YOUR_PASSWORD',
-      driverClassName: 'oracle.jdbc.OracleDriver',
-      dialect: 'org.hibernate.dialect.OracleDialect',
-      ddlAuto: 'update',
-      showSql: true,
-      formatSql: true
-    },
-    
-    sqlserver: {
-      url: 'jdbc:sqlserver://localhost:1433;databaseName=YOUR_DATABASE_NAME',
-      username: 'YOUR_USERNAME',
-      password: 'YOUR_PASSWORD',
-      driverClassName: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
-      dialect: 'org.hibernate.dialect.SQLServerDialect',
-      ddlAuto: 'update',
-      showSql: true,
-      formatSql: true
-    },
-    
-    mariadb: {
-      url: 'jdbc:mariadb://localhost:3306/YOUR_DATABASE_NAME',
-      username: 'YOUR_USERNAME',
-      password: 'YOUR_PASSWORD',
-      driverClassName: 'org.mariadb.jdbc.Driver',
-      dialect: 'org.hibernate.dialect.MariaDBDialect',
-      ddlAuto: 'update',
-      showSql: true,
-      formatSql: true
-    },
-    
-    none: null
+
+    none: null,
   };
 
   return configs[database] || null;
@@ -84,80 +87,111 @@ function getDatabaseConfig(database) {
 /**
  * Get database setup instructions for README
  */
-function getDatabaseSetupInstructions(database) {
+function getDatabaseSetupInstructions(database, dbName) {
   const instructions = {
     postgresql: `
-### Database Setup
+### PostgreSQL Setup
 
-1. Install PostgreSQL (https://www.postgresql.org/download/)
+1. Install PostgreSQL: https://www.postgresql.org/download/
+2. Open pgAdmin or psql.
+3. Create database:
 
-2. Create a database:
-   \`\`\`sql
-   CREATE DATABASE your_database_name;
-   \`\`\`
+\`\`\`sql
+CREATE DATABASE ${dbName};
+\`\`\`
 
-3. Update \`src/main/resources/application.properties\`:
-   \`\`\`properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/your_database_name
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
-   \`\`\`
+4. Update application.properties with your credentials.
 `,
-    
+
     mysql: `
-### Database Setup
+### MySQL Setup
 
-1. Install MySQL (https://dev.mysql.com/downloads/)
+1. Install MySQL: https://dev.mysql.com/downloads/
+2. Login to MySQL.
+3. Create database:
 
-2. Create a database:
-   \`\`\`sql
-   CREATE DATABASE your_database_name;
-   \`\`\`
+\`\`\`sql
+CREATE DATABASE ${dbName};
+\`\`\`
 
-3. Update \`src/main/resources/application.properties\`:
-   \`\`\`properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
-   spring.datasource.username=your_username
-   spring.datasource.password=your_password
-   \`\`\`
+4. Update application.properties.
 `,
-    
-    h2: `
-### Database Setup
 
-H2 is configured for in-memory use. No setup required!
+    mariadb: `
+### MariaDB Setup
 
-**Access H2 Console:**
-- URL: http://localhost:8080/h2-console
-- JDBC URL: jdbc:h2:mem:testdb
-- Username: sa
-- Password: (leave empty)
+1. Install MariaDB: https://mariadb.org/download/
+2. Login to MariaDB.
+3. Create database:
+
+\`\`\`sql
+CREATE DATABASE ${dbName};
+\`\`\`
+
+4. Update application.properties.
 `,
-    
+
+    oracle: `
+### Oracle Database Setup
+
+1. Install Oracle Database.
+2. Connect using SQL*Plus or SQL Developer.
+3. Create a user/schema:
+
+\`\`\`sql
+CREATE USER ${dbName} IDENTIFIED BY your_password;
+GRANT CONNECT, RESOURCE TO ${dbName};
+\`\`\`
+
+4. Use that username in application.properties.
+`,
+
+    sqlserver: `
+### SQL Server Setup
+
+1. Install SQL Server.
+2. Open SSMS.
+3. Create database:
+
+\`\`\`sql
+CREATE DATABASE ${dbName};
+\`\`\`
+
+4. Update application.properties.
+`,
+
     mongodb: `
-### Database Setup
+### MongoDB Setup
 
-1. Install MongoDB (https://www.mongodb.com/try/download/community)
+1. Install MongoDB: https://www.mongodb.com/try/download/community
+2. Start MongoDB server:
 
-2. Start MongoDB:
-   \`\`\`bash
-   mongod
-   \`\`\`
+\`\`\`bash
+mongod
+\`\`\`
 
-3. Update \`src/main/resources/application.properties\`:
-   \`\`\`properties
-   spring.data.mongodb.uri=mongodb://localhost:27017/your_database_name
-   spring.data.mongodb.database=your_database_name
-   \`\`\`
+MongoDB automatically creates the database when first used.
+No manual CREATE DATABASE needed.
 `,
-    
-    none: ''
+
+    h2: `
+### H2 Setup
+
+H2 is configured as in-memory database.
+
+No installation required.
+
+Access Console:
+http://localhost:8080/h2-console
+`,
+
+    none: "",
   };
 
-  return instructions[database] || '';
+  return instructions[database] || "";
 }
 
 module.exports = {
   getDatabaseConfig,
-  getDatabaseSetupInstructions
+  getDatabaseSetupInstructions,
 };

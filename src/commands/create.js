@@ -1,3 +1,8 @@
+/**
+ * create.js
+ * Main command handler for: spring-cli create <project-name>
+ */
+
 const chalk = require("chalk");
 const fs = require("fs-extra");
 const path = require("path");
@@ -5,9 +10,12 @@ const Handlebars = require("handlebars");
 
 const { collectProjectConfiguration } = require("../prompts");
 const { resolveMavenDependencies } = require("../utils/dependencyResolver");
+const { generateConfig } = require("../generators/configGenerator");
+const { generateReadme } = require("../generators/readmeGenerator");
+const { generateGitignore } = require("../generators/gitignoreGenerator");
 
 /**
- * Display configuration summary
+ * Display selected configuration summary in CLI
  */
 function displayConfigSummary(config) {
   console.log(chalk.bold.green("\n✨ Configuration Summary:\n"));
@@ -26,6 +34,11 @@ function displayConfigSummary(config) {
   console.log(`   Build Tool: ${chalk.green(config.buildTool)}`);
   console.log(`   Packaging: ${chalk.green(config.packaging)}`);
   console.log(`   Configuration: ${chalk.green(config.configurationType)}`);
+  console.log(`   Database: ${chalk.green(config.database || "None")}`);
+
+  if (config.dbName) {
+    console.log(`   DB Name: ${chalk.green(config.dbName)}`);
+  }
 
   console.log(chalk.bold("\n📚 Dependencies:"));
   if (config.dependencies?.length) {
@@ -40,21 +53,34 @@ function displayConfigSummary(config) {
 }
 
 /**
- * Generate pom.xml (FIXED)
+ * Convert artifact name to proper Spring Boot Application class name
+ * Example:
+ *   my-app -> MyAppApplication
+ */
+function generateApplicationClassName(artifact) {
+  return (
+    artifact
+      .split("-")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("") + "Application"
+  );
+}
+
+/**
+ * Generate pom.xml using Handlebars template
  */
 function generatePomXml(config, projectDir) {
+  // ---------- CHANGE: use __dirname instead of process.cwd() ----------
   const templatePath = path.join(
-    process.cwd(),
-    "templates",
-    "maven",
-    "pom.xml.hbs"
+    __dirname,
+    "../../templates/maven/pom.xml.hbs"
   );
 
   const outputPath = path.join(projectDir, "pom.xml");
+
   const templateSource = fs.readFileSync(templatePath, "utf8");
   const template = Handlebars.compile(templateSource);
 
-  // ✅ RESOLVE DEPENDENCIES CORRECTLY
   const dependencies = resolveMavenDependencies(config.dependencies);
 
   const pomContent = template({
@@ -73,68 +99,58 @@ function generatePomXml(config, projectDir) {
 }
 
 /**
- * Generate Java files
+ * Generate Main Application class & Test class
  */
-function generateJavaFiles(config, projectDir) {
+async function generateJavaFiles(config, projectDir) {
   const packagePath = config.packageName.replace(/\./g, "/");
+
   const mainJavaDir = path.join(projectDir, "src/main/java", packagePath);
   const testJavaDir = path.join(projectDir, "src/test/java", packagePath);
 
-  const appClassName = `${config.artifact
-    .replace(/-([a-z])/g, g => g[1].toUpperCase())
-    .replace(/^\w/, c => c.toUpperCase())}Application`;
+  await fs.ensureDir(mainJavaDir);
+  await fs.ensureDir(testJavaDir);
 
+  const appClassName = generateApplicationClassName(config.artifact);
+
+  // ---------- CHANGE: use __dirname ----------
   const appTemplatePath = path.join(
-    process.cwd(),
-    "templates",
-    "java",
-    "Application.java.hbs"
+    __dirname,
+    "../../templates/java/Application.java.hbs"
   );
-
-  const appTemplate = Handlebars.compile(
-    fs.readFileSync(appTemplatePath, "utf8")
-  );
+  const appTemplate = Handlebars.compile(fs.readFileSync(appTemplatePath, "utf8"));
 
   fs.writeFileSync(
     path.join(mainJavaDir, `${appClassName}.java`),
-    appTemplate({
-      packageName: config.packageName,
-      className: appClassName,
-    })
+    appTemplate({ packageName: config.packageName, className: appClassName })
   );
 
+  // ---------- CHANGE: use __dirname ----------
   const testTemplatePath = path.join(
-    process.cwd(),
-    "templates",
-    "java",
-    "ApplicationTests.java.hbs"
+    __dirname,
+    "../../templates/java/ApplicationTests.java.hbs"
   );
-
-  const testTemplate = Handlebars.compile(
-    fs.readFileSync(testTemplatePath, "utf8")
-  );
+  const testTemplate = Handlebars.compile(fs.readFileSync(testTemplatePath, "utf8"));
 
   fs.writeFileSync(
     path.join(testJavaDir, `${appClassName}Tests.java`),
-    testTemplate({
-      packageName: config.packageName,
-      className: appClassName,
-    })
+    testTemplate({ packageName: config.packageName, className: appClassName })
   );
 }
 
 /**
- * Copy Maven wrapper
+ * Copy Maven wrapper files (mvnw, .mvn folder)
  */
 async function copyMavenWrapper(targetDir) {
+  // ---------- CHANGE: use __dirname ----------
   const source = path.join(__dirname, "../../templates/maven");
+
   await fs.copy(source, targetDir, {
-    filter: src => !src.endsWith("pom.xml.hbs"),
+    filter: src => !src.endsWith("pom.xml.hbs")
   });
 }
 
 /**
- * Create base folder structure
+ * Create base Spring Boot folder structure
  */
 async function createBaseStructure(targetDir, packageName) {
   const basePackagePath = packageName.replace(/\./g, "/");
@@ -145,18 +161,19 @@ async function createBaseStructure(targetDir, packageName) {
 }
 
 /**
- * Create command handler
+ * Main command handler for `create`
  */
 async function createCommand(projectName) {
   try {
-    console.log(chalk.bold.green("\nWelcome to Spring Boot CLI! 🚀\n"));
+    console.log(chalk.bold.green("\n🚀 Welcome to Spring Boot CLI!\n"));
 
     const config = await collectProjectConfiguration(projectName);
+
     displayConfigSummary(config);
 
     const projectDir = path.join(process.cwd(), config.projectName);
 
-    if (fs.existsSync(projectDir)) {
+    if (await fs.pathExists(projectDir)) {
       console.log(chalk.red(`❌ Folder "${config.projectName}" already exists.`));
       process.exit(1);
     }
@@ -167,11 +184,21 @@ async function createCommand(projectName) {
     if (config.buildTool === "maven") {
       generatePomXml(config, projectDir);
       await copyMavenWrapper(projectDir);
-      generateJavaFiles(config, projectDir);
-      console.log(chalk.green("✔ Java files generated"));
+      await generateJavaFiles(config, projectDir);
+      console.log(chalk.green("✔ Maven & Java files generated"));
     }
 
-    console.log(chalk.green("\n🎉 Project structure initialized successfully!\n"));
+    await generateConfig(config, projectDir);
+    console.log(chalk.green("✔ Application configuration generated"));
+
+    await generateReadme(config, projectDir);
+    console.log(chalk.green("✔ README generated"));
+
+    // ---------- CHANGE: added .gitignore ----------
+    await generateGitignore(config, projectDir);
+    console.log(chalk.green("✔ .gitignore generated"));
+
+    console.log(chalk.green("\n🎉 Project initialized successfully!\n"));
   } catch (error) {
     console.error(chalk.red("\n❌ Error creating project:"), error.message);
     process.exit(1);

@@ -7,7 +7,7 @@ const chalk = require('chalk');
 async function promptDatabase() {
   console.log(chalk.bold.cyan('\n🗄️  Database\n'));
 
-  const answer = await inquirer.prompt([
+  const { database } = await inquirer.prompt([
     {
       type: 'list',
       name: 'database',
@@ -26,7 +26,27 @@ async function promptDatabase() {
     }
   ]);
 
-  return answer;
+  let dbName = null;
+
+  // Ask DB name only when needed
+  if (database !== 'none' && database !== 'h2') {
+    const answer = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'dbName',
+        message: 'Enter database name:',
+        default: 'myapp_db',
+        validate: (input) =>
+          input && input.trim() !== ''
+            ? true
+            : 'Database name cannot be empty'
+      }
+    ]);
+
+    dbName = answer.dbName;
+  }
+
+  return { database, dbName };
 }
 
 module.exports = {

@@ -6,8 +6,11 @@ const { getDatabaseSetupInstructions } = require('../utils/databaseConfigurator'
 /**
  * Register Handlebars helpers
  */
-Handlebars.registerHelper('eq', function(a, b) {
+Handlebars.registerHelper('eq', function (a, b) {
   return a === b;
+});
+Handlebars.registerHelper('ne', function (a, b) {
+  return a !== b;
 });
 
 /**
@@ -15,15 +18,21 @@ Handlebars.registerHelper('eq', function(a, b) {
  */
 async function generateReadme(config, targetDir) {
   // Read template
-  const templatePath = path.join(__dirname, '../../templates/config/README.md.hbs');
+  const templatePath = path.join(
+    __dirname,
+    '../../templates/config/README.md.hbs'
+  );
   const templateContent = await fs.readFile(templatePath, 'utf8');
-  
+
   // Compile template
   const template = Handlebars.compile(templateContent);
-  
-  // Get database setup instructions
-  const dbInstructions = getDatabaseSetupInstructions(config.database);
-  
+
+  // Get database setup instructions (now includes dbName)
+  const dbInstructions =
+    config.database && config.database !== 'none'
+      ? getDatabaseSetupInstructions(config.database, config.dbName)
+      : '';
+
   // Generate content
   const readmeContent = template({
     projectName: config.projectName,
