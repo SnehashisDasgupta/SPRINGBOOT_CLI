@@ -6,7 +6,6 @@ A command-line tool to generate Spring Boot projects interactively, similar to c
 ![Node Version](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-## ✨ Features
 
 ## ✨ Features
 
